@@ -1,4 +1,6 @@
-import urllib2, urllib, base64, json
+#!/usr/bin/env python
+
+import urllib2, urllib, base64, json, sys
 import subprocess
 from urlparse import urlparse
 from getpass import getpass
@@ -23,11 +25,9 @@ def get_account(token):
 	return out['data']['login']
 
 def shorten(longurl, token):
-	#longurl_parsed = urlparse(longurl)
-	#if longurl_parsed.path[0] != '/':
-	#	pass
-	params = {'access_token': token, 'longUrl': longurl}
-	req = urllib2.Request(API + '/v3/shorten/?access_token=' + token + '&longUrl=' + longurl)
+	longurl_clean = urllib.quote_plus(longurl.strip())
+	req = urllib2.Request(API + '/v3/shorten/?access_token=' + token + 
+		'&longUrl=' + longurl_clean)
 	response = urllib2.urlopen(req)
 	out = json.loads(response.read())
 	return out['data']['url']
@@ -36,10 +36,19 @@ if __name__ == '__main__':
 	user = raw_input('username: ')
 	pwd = getpass('password: ')
 	token = authenticate(user, pwd)
-	#print get_account(token)
 	longurl = str(raw_input('URL: '))
 	shorturl = shorten(longurl, token)
-	print YELLOW + "Shortened URL: " + shorturl + ENDC
-	p = subprocess.Popen(["pbcopy"],stdin=subprocess.PIPE)
-	p.stdin.write(shorturl)
+	print YELLOW + "Shortened URL: " + shorturl
+
+	if sys.platform == 'darwin':
+		p = subprocess.Popen(["pbcopy"],stdin=subprocess.PIPE)
+		p.stdin.write(shorturl)
+		print "(short URL is in your clipboard)\n" + ENDC
+	elif sys.platform == 'linux' or sys.platform == 'linux2':
+		p = subprocess.Popen(["xclip -selection clipboard -i"],stdin=subprocess.PIPE)
+		p.stdin.write(shorturl)
+		print "(short URL is in your clipboard)\n" + ENDC
+	else:
+		print ENDC
+
 
