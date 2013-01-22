@@ -1,10 +1,9 @@
 # QUICK BITMARK
 Create a bit.ly link that's automatically copied to your clipboard from the command line.
 
-*note:* clipboard only works if you are using a Mac.
+*note:* automatic copying to clipboard only works for Mac and Linux.
 
 *to do:*  
-1. generate a system alias  
-2. encode longUrl  
-3. accept longUrl as a script parameter  
-4. prompt to save access token  
+1. accept longUrl as a script parameter  
+2. handle auth error (retry password)
+3. reset parameter to erase token 
