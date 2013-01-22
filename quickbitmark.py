@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-import urllib2, urllib, base64, json, sys, shelve
+import urllib2, urllib, base64, json, sys, shelve, subprocess
 from contextlib import closing
-import subprocess
 from getpass import getpass
+from optparse import OptionParser
 
 API = "https://api-ssl.bitly.com"
 YELLOW = '\033[33m'
@@ -16,8 +16,12 @@ def authenticate(user,pwd):
 	headers = {'Authorization': value}
 	url = API + "/oauth/access_token"
 	req = urllib2.Request(url, 'True', headers)
-	response = urllib2.urlopen(req)
-	return response.read()
+	try:
+		response = urllib2.urlopen(req)
+		content = response.read()
+	except urllib2.HTTPError, error:
+		content = False
+	return content
 
 
 def login():
@@ -26,9 +30,13 @@ def login():
 			settings['FIRST_USE'] = True
 
 		if settings['FIRST_USE']:
-			user = raw_input('username: ')
-			pwd = getpass('password: ')
-			token = authenticate(user, pwd)
+			while True:
+				user = raw_input('username: ')
+				pwd = getpass('password: ')
+				token = authenticate(user, pwd)
+				if token:
+					break
+				print "Wrong credentials. Try again.\n"
 			save = raw_input('save credentials? (Y/N): ')
 			if save.strip().upper() == 'Y':
 				settings['MYTOKEN'] = str(token)
@@ -48,8 +56,15 @@ def shorten(longurl, token):
 
 
 if __name__ == '__main__':
+#	parser = OptionParser()
+#	parser.add_option("-a", dest="add")
+#	(options, args) = parser.parse_args()
 	token = login()
-	longurl = str(raw_input('URL: '))
+	if len(sys.argv) < 2:
+		longurl = str(raw_input('URL: '))
+	else:
+		longurl = sys.argv[1]
+		
 	shorturl = shorten(longurl, token)
 	print YELLOW + "Shortened URL: " + shorturl
 	if sys.platform == 'darwin':
@@ -57,7 +72,8 @@ if __name__ == '__main__':
 		p.stdin.write(shorturl)
 		print "(short URL copied to your clipboard)\n" + ENDC
 	elif sys.platform == 'linux' or sys.platform == 'linux2':
-		p = subprocess.Popen(["xclip -selection clipboard -i"],stdin=subprocess.PIPE)
+		p = subprocess.Popen(["xclip -selection clipboard -i"],
+			stdin=subprocess.PIPE)
 		p.stdin.write(shorturl)
 		print "(short URL copied to your clipboard)\n" + ENDC
 	else:
