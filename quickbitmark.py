@@ -70,19 +70,21 @@ def copypaste(shorturl):
 
 
 if __name__ == '__main__':
-	#parser = ArgumentParser(description='Generate bit.ly short URLs.')
-	#parser.add_argument("-r", "--reset", action="store_true", dest="reset")
-	#options = parser.parse_args()
+	parser = ArgumentParser(description='Generate bit.ly short URLs.')
+	parser.add_argument("URL", nargs="?", default=False, help="URL to shorten")
+	parser.add_argument("-r", "--reset", action="store_true", 
+		help="Use this option to reset or change your credentials.")
+	options = parser.parse_args()
 	token = login()
-	#if options.reset:
-	#	with shelve.open('settings.conf') as settings:
-	#		settings['FIRST_USE'] = True
-	#		settings['MYTOKEN'] = ""
-	#	sys.exit(0)
-	if len(sys.argv) < 2:
-		longurl = str(raw_input('URL: '))
-	else:
+	if options.reset:
+		with closing(shelve.open('settings.conf')) as settings:
+			settings['FIRST_USE'] = True
+			settings['MYTOKEN'] = ""
+		sys.exit(0)
+	elif options.URL:
 		longurl = sys.argv[1]
+	else:
+		longurl = str(raw_input('URL: '))
 
 	shorturl = shorten(longurl, token)
 	print YELLOW + "Shortened URL: " + shorturl
