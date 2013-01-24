@@ -3,7 +3,7 @@
 import urllib2, urllib, base64, json, sys, shelve, subprocess
 from contextlib import closing
 from getpass import getpass
-from optparse import OptionParser
+from argparse import ArgumentParser
 
 API = "https://api-ssl.bitly.com"
 YELLOW = '\033[33m'
@@ -55,18 +55,7 @@ def shorten(longurl, token):
 	return out['data']['url']
 
 
-if __name__ == '__main__':
-#	parser = OptionParser()
-#	parser.add_option("-a", dest="add")
-#	(options, args) = parser.parse_args()
-	token = login()
-	if len(sys.argv) < 2:
-		longurl = str(raw_input('URL: '))
-	else:
-		longurl = sys.argv[1]
-		
-	shorturl = shorten(longurl, token)
-	print YELLOW + "Shortened URL: " + shorturl
+def copypaste(shorturl):
 	if sys.platform == 'darwin':
 		p = subprocess.Popen(["pbcopy"],stdin=subprocess.PIPE)
 		p.stdin.write(shorturl)
@@ -78,3 +67,23 @@ if __name__ == '__main__':
 		print "(short URL copied to your clipboard)\n" + ENDC
 	else:
 		print ENDC
+
+
+if __name__ == '__main__':
+	#parser = ArgumentParser(description='Generate bit.ly short URLs.')
+	#parser.add_argument("-r", "--reset", action="store_true", dest="reset")
+	#options = parser.parse_args()
+	token = login()
+	#if options.reset:
+	#	with shelve.open('settings.conf') as settings:
+	#		settings['FIRST_USE'] = True
+	#		settings['MYTOKEN'] = ""
+	#	sys.exit(0)
+	if len(sys.argv) < 2:
+		longurl = str(raw_input('URL: '))
+	else:
+		longurl = sys.argv[1]
+
+	shorturl = shorten(longurl, token)
+	print YELLOW + "Shortened URL: " + shorturl
+	copypaste(shorturl)
